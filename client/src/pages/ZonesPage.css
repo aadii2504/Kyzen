@@ -1,0 +1,29 @@
+.zones-page { max-width: 1200px; margin: 0 auto; }
+.zones-header { margin-bottom: var(--space-xl); }
+.zones-header .page-title { display: flex; align-items: center; gap: var(--space-sm); margin-bottom: var(--space-md); }
+.zones-controls { display: flex; gap: var(--space-md); flex-wrap: wrap; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.filter-chip {
+  padding: 6px 14px; border-radius: var(--radius-full);
+  background: var(--bg-tertiary); color: var(--text-secondary);
+  font-size: 12px; font-weight: 500; border: 1px solid var(--bg-glass-border);
+  transition: all var(--duration-fast);
+}
+.filter-chip:hover { color: var(--text-primary); border-color: var(--accent-primary); }
+.filter-active { background: rgba(99,102,241,0.15); color: var(--accent-primary); border-color: var(--accent-primary); }
+
+.zones-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+.zone-card { padding: var(--space-lg); }
+.zone-card-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm); }
+.zone-type-emoji { font-size: 28px; }
+.zone-status-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 8px currentColor; }
+.zone-card-name { font-family: var(--font-display); font-size: 16px; font-weight: 600; margin-bottom: var(--space-md); }
+.zone-card-stats { display: flex; justify-content: space-between; margin-bottom: var(--space-md); }
+.zc-stat { text-align: center; }
+.zc-val { font-family: var(--font-display); font-size: 22px; font-weight: 700; display: block; }
+.zc-label { font-size: 11px; color: var(--text-tertiary); }
+.zone-progress-bar { height: 4px; background: var(--bg-tertiary); border-radius: 2px; overflow: hidden; }
+.zone-progress-fill { height: 100%; border-radius: 2px; transition: width 0.5s var(--ease-out-expo); }

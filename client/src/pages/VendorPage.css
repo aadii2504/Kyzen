@@ -1,0 +1,84 @@
+.vendor-page { max-width: 420px; margin: 0 auto; }
+.vendor-error { text-align: center; padding: var(--space-3xl) 0; }
+.vendor-error h2 { font-family: var(--font-display); font-size: 22px; margin-bottom: 8px; }
+.vendor-error p { color: var(--text-secondary); }
+
+/* PIN Form */
+.pin-form { text-align: center; padding: var(--space-2xl) 0; }
+.pin-form h2 { font-family: var(--font-display); font-size: 22px; margin: var(--space-md) 0 4px; }
+.pin-form p { color: var(--text-secondary); font-size: 14px; margin-bottom: var(--space-xl); }
+.pin-input {
+  text-align: center; font-size: 32px; letter-spacing: 12px; font-family: var(--font-mono);
+  max-width: 200px; margin: 0 auto var(--space-lg); display: block;
+  padding: 14px; background: var(--bg-tertiary); border: 2px solid var(--bg-glass-border);
+  border-radius: var(--radius-md); color: var(--text-primary);
+}
+.pin-input:focus { border-color: var(--accent-primary); }
+.pin-submit-btn {
+  padding: 12px 40px; background: var(--accent-gradient); color: white;
+  border-radius: var(--radius-md); font-size: 15px; font-weight: 600;
+}
+.pin-submit-btn:disabled { opacity: 0.5; }
+
+/* Vendor Panel */
+.vendor-panel { }
+.vendor-header { display: flex; gap: var(--space-md); align-items: center; margin-bottom: var(--space-xl); }
+.vendor-header h2 { font-family: var(--font-display); font-size: 22px; }
+.vendor-zone { color: var(--text-tertiary); font-size: 13px; }
+
+.update-success {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  color: var(--accent-emerald); font-size: 14px; font-weight: 600;
+  padding: 8px; margin-bottom: var(--space-md);
+  animation: popIn 0.3s var(--ease-out-expo);
+}
+
+/* Queue Control */
+.queue-control { text-align: center; margin-bottom: var(--space-xl); }
+.queue-label { font-size: 14px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: var(--space-md); }
+.queue-buttons { display: flex; align-items: center; justify-content: center; gap: var(--space-xl); margin-bottom: var(--space-sm); }
+.queue-btn {
+  width: 64px; height: 64px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 28px; transition: all var(--duration-fast);
+  border: 2px solid var(--bg-glass-border);
+}
+.queue-btn.minus { background: var(--bg-tertiary); color: var(--accent-rose); }
+.queue-btn.plus { background: var(--bg-tertiary); color: var(--accent-emerald); }
+.queue-btn:hover { transform: scale(1.1); }
+.queue-btn:active { transform: scale(0.95); }
+.queue-btn:disabled { opacity: 0.3; transform: none; }
+.queue-number { font-family: var(--font-display); font-size: 56px; font-weight: 800; min-width: 80px; }
+.wait-estimate { font-size: 13px; color: var(--text-tertiary); }
+
+/* Open Toggle */
+.open-toggle {
+  display: flex; align-items: center; gap: 12px;
+  padding: var(--space-md); background: var(--bg-tertiary);
+  border-radius: var(--radius-md); margin-bottom: var(--space-xl);
+  cursor: pointer; font-size: 15px; font-weight: 500;
+}
+.open-toggle input { display: none; }
+.open-slider {
+  width: 48px; height: 26px; background: var(--accent-rose); border-radius: 13px;
+  position: relative; transition: background var(--duration-fast); flex-shrink: 0;
+}
+.open-slider::after {
+  content: ''; position: absolute; top: 3px; left: 3px;
+  width: 20px; height: 20px; background: white; border-radius: 50%;
+  transition: transform var(--duration-fast);
+}
+.open-toggle input:checked + .open-slider { background: var(--accent-emerald); }
+.open-toggle input:checked + .open-slider::after { transform: translateX(22px); }
+
+.update-btn {
+  width: 100%; padding: 16px; background: var(--accent-gradient);
+  color: white; border-radius: var(--radius-md); font-size: 16px; font-weight: 600;
+  transition: all var(--duration-normal);
+}
+.update-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-glow-indigo); }
+.update-btn:disabled { opacity: 0.6; }
+
+.last-update { text-align: center; margin-top: var(--space-md); font-size: 12px; color: var(--text-tertiary); }
+
+.form-error { background: rgba(244,63,94,0.1); border: 1px solid rgba(244,63,94,0.3); color: var(--accent-rose); padding: 10px 16px; border-radius: var(--radius-sm); font-size: 13px; margin-bottom: var(--space-lg); text-align: center; }
