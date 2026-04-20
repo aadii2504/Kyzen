@@ -97,9 +97,11 @@ export default function HomePage() {
     return () => socket.off('zone:update', handler);
   }, [socket]);
 
-  const criticalZones = zones.filter(z => z.congestionLevel >= 70).sort((a, b) => b.congestionLevel - a.congestionLevel);
-  const totalAttendance = zones.reduce((sum, z) => sum + z.currentOccupancy, 0);
-  const totalCapacity = zones.reduce((sum, z) => sum + z.capacity, 0);
+  // Safe checks for data availability
+  const safeZones = Array.isArray(zones) ? zones : [];
+  const criticalZones = safeZones.filter(z => z.congestionLevel >= 70).sort((a, b) => b.congestionLevel - a.congestionLevel);
+  const totalAttendance = safeZones.reduce((sum, z) => sum + (z.currentOccupancy || 0), 0);
+  const totalCapacity = safeZones.reduce((sum, z) => sum + (z.capacity || 0), 0);
 
   if (loading) {
     return (
@@ -181,13 +183,13 @@ export default function HomePage() {
             <div className="ai-col">
               <h4>Key Insights</h4>
               <ul>
-                {insights.highlights.map((h, i) => <li key={i}>{h}</li>)}
+                {insights?.highlights?.map((h, i) => <li key={i}>{h}</li>)}
               </ul>
             </div>
             <div className="ai-col">
               <h4>Recommendations</h4>
               <ul>
-                {insights.recommendations.map((r, i) => <li key={i}>{r}</li>)}
+                {insights?.recommendations?.map((r, i) => <li key={i}>{r}</li>)}
               </ul>
             </div>
           </div>
@@ -216,7 +218,7 @@ export default function HomePage() {
         <div className="stat-item glass-card-static">
           <MapPin size={18} className="stat-icon" />
           <div>
-            <div className="stat-value">{zones.length}</div>
+            <div className="stat-value">{safeZones.length}</div>
             <div className="stat-label">Active Zones</div>
           </div>
         </div>

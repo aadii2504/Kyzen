@@ -83,36 +83,42 @@ const planJourney = async (goals, currentZoneId, deadline, preferences = {}) => 
       throw new Error(`Zone "${currentZoneId}" not found`);
     }
 
-    const gemini = getGemini();
+    const genAI = getGemini();
     let itinerary;
 
-    if (gemini) {
-      // Use Gemini AI for smart planning
+    if (genAI) {
       const prompt = buildPrompt(goals, currentZone, deadline, zones, vendors, preferences);
+      let text = '';
+      let success = false;
+      const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
 
-      const response = await gemini.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: prompt,
-        config: {
-          temperature: 0.3,
-          maxOutputTokens: 2048,
+      for (const modelName of modelsToTry) {
+        if (success) break;
+        for (const apiVer of ['v1beta', 'v1']) {
+          try {
+            const model = genAI.getGenerativeModel({ model: modelName }, { apiVersion: apiVer });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            text = response.text() || '';
+            if (text) {
+              success = true;
+              break;
+            }
+          } catch (e) {}
         }
-      });
+      }
 
-      // Extract JSON from response
-      let text = response.text || '';
-      // Strip markdown code fences if present
-      text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-
-      try {
-        itinerary = JSON.parse(text);
-      } catch (parseError) {
-        console.error('Failed to parse Gemini response:', text);
-        // Fallback to basic routing
+      if (success) {
+        text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+        try {
+          itinerary = JSON.parse(text);
+        } catch (err) {
+          itinerary = await buildFallbackItinerary(goals, currentZone, zones, vendors, deadline);
+        }
+      } else {
         itinerary = await buildFallbackItinerary(goals, currentZone, zones, vendors, deadline);
       }
     } else {
-      // Fallback: use Dijkstra-based basic routing without AI
       itinerary = await buildFallbackItinerary(goals, currentZone, zones, vendors, deadline);
     }
 

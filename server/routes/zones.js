@@ -7,7 +7,7 @@ const AppError = require('../utils/AppError');
 // GET /api/zones — All zones with live congestion
 router.get('/', catchAsync(async (req, res) => {
   const zones = await Zone.find({}).sort({ name: 1 });
-  res.status(200).json({ status: 'success', results: zones.length, data: { zones } });
+  res.status(200).json(zones);
 }));
 
 // GET /api/zones/:id — Single zone detail
@@ -43,7 +43,7 @@ router.patch('/:id/occupancy', catchAsync(async (req, res, next) => {
     });
   }
 
-  res.status(200).json({ status: 'success', data: { zone } });
+  res.status(200).json(zone);
 }));
 
 module.exports = router;

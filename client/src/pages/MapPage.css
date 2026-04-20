@@ -1,23 +1,28 @@
-.map-page { max-width: 1200px; margin: 0 auto; }
-.map-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md); flex-wrap: wrap; gap: var(--space-md); }
-.page-title { font-family: var(--font-display); font-size: 28px; font-weight: 700; }
-
-.map-controls { display: flex; gap: var(--space-sm); }
-.toggle-btn {
-  display: flex; align-items: center; gap: 6px;
-  padding: 8px 16px; border-radius: var(--radius-sm);
-  background: var(--bg-tertiary); color: var(--text-secondary);
-  font-size: 13px; font-weight: 500; border: 1px solid var(--bg-glass-border);
-  transition: all var(--duration-fast);
+.map-page { 
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 120px);
+  max-width: 1400px;
+  margin: 0 auto;
 }
-.toggle-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
-.toggle-active { background: rgba(99,102,241,0.15); color: var(--accent-primary); border-color: var(--accent-primary); }
+
+.map-header { 
+  display: flex; 
+  justify-content: space-between; 
+  align-items: center; 
+  margin-bottom: var(--space-md); 
+  flex-wrap: wrap; 
+  gap: var(--space-md); 
+}
 
 .map-container {
   flex: 1;
+  min-height: 500px;
   border-radius: var(--radius-lg);
   overflow: hidden;
   position: relative;
+  background: #0a0e1a;
+  border: 1px solid var(--bg-glass-border);
 }
 
 /* Custom Google Maps Marker */

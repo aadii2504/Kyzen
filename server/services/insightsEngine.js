@@ -37,71 +37,80 @@ const generatePulseInsights = async () => {
       createdAt: { $gte: new Date(now - 15 * 60 * 1000) }
     });
 
-    const gemini = getGemini();
-    if (!gemini) {
-      // Fallback insights without AI
-      return buildFallbackInsights(pulse, zones, vendors);
-    }
+    const genAI = getGemini();
+    if (!genAI) return buildFallbackInsights(pulse, zones, vendors);
 
     const criticalZones = zones.filter(z => z.congestionLevel >= 70);
     const negReports = recentReports.filter(r => r.sentiment === 'negative');
 
-    const prompt = `You are Kyzen, the elite Smart Stadium Intelligence AI. Your goal is to analyze stadium live data and provide high-impact, professional insights.
+    const prompt = `You are Kyzen, the elite Smart Stadium Intelligence AI. Analyze stadium data and provide professional insights.
 
 STADIUM DATA SNAPSHOT:
-- Pulse Score: ${pulse.score}/100 (Status: ${pulse.label})
-- Global Attendance: ${pulse.stats?.totalAttendance || 0} / ${pulse.stats?.totalCapacity || 0}
-- Critical Hot Zones: ${criticalZones.map(z => `${z.name} (${z.congestionLevel}%)`).join(', ') || 'None reported'}
-- Vendor Efficiency: ${vendors.length} open stalls, avg wait ${vendors.length ? Math.round(vendors.reduce((s, v) => s + v.estimatedWaitMinutes, 0) / vendors.length) : 0} min
-- Real-time Sentiment: ${negReports.length} negative signals detected in the last window.
-- Efficiency Metrics: Flow=${pulse.breakdown?.crowdFlow || 0}, Speed=${pulse.breakdown?.queueEfficiency || 0}, Atmosphere=${pulse.breakdown?.mood || 0}
+- Pulse Score: ${pulse.score}/100
+- Hot Zones: ${criticalZones.map(z => `${z.name} (${z.congestionLevel}%)`).join(', ') || 'None'}
+- Metrics: Flow=${pulse.breakdown?.crowdFlow || 0}, Speed=${pulse.breakdown?.queueEfficiency || 0}, Atmosphere=${pulse.breakdown?.mood || 0}
 
-TASK:
-Provide a strategic summary, key analytical highlights, and tactical recommendations for fans.
-
-REQUIRED JSON FORMAT (Strictly no markdown):
+REQUIRED JSON FORMAT:
 {
-  "summary": "Professional executive summary of stadium state",
-  "highlights": ["3 analytical observations"],
-  "recommendations": ["2 tactical tips for fans"],
-  "crowdPrediction": "Data-driven prediction for the next 30-60 minutes"
+  "summary": "Executive summary of stadium state",
+  "highlights": ["Obs 1", "Obs 2", "Obs 3"],
+  "recommendations": ["Tip 1", "Tip 2"],
+  "crowdPrediction": "Prediction"
 }`;
 
-    const response = await gemini.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: prompt,
-      config: {
-        temperature: 0.2, // Lower temperature for more stable JSON
-        maxOutputTokens: 512,
-      }
-    });
+    let text = '';
+    let success = false;
+    const modelsToTry = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-pro'];
 
-    let text = response.text || '';
+    for (const modelName of modelsToTry) {
+      if (success) break;
+      
+      // Try both v1beta (default) and v1 (stable) API versions
+      for (const apiVer of ['v1beta', 'v1']) {
+        try {
+          const model = genAI.getGenerativeModel(
+            { model: modelName }, 
+            { apiVersion: apiVer }
+          );
+          const result = await model.generateContent(prompt);
+          const response = await result.response;
+          text = response.text() || '';
+          if (text) {
+            success = true;
+            console.log(`✅ Gemini Connected: ${modelName} (${apiVer})`);
+            break;
+          }
+        } catch (e) {
+          // Log only the first major error to avoid terminal spam
+          if (modelName === 'gemini-1.5-flash' && apiVer === 'v1beta') {
+            console.error(`🔍 Diagnostic: ${modelName} failed with: ${e.message}`);
+          }
+        }
+      }
+    }
+
+    if (!success) {
+      console.warn('AI Bridge: All versions/models unavailable. Activating Kyzen Local-IQ.');
+      return buildFallbackInsights(pulse, zones, vendors);
+    }
+
     text = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
 
     try {
       const insights = JSON.parse(text);
-      const result = {
+      return {
         ...insights,
         score: pulse.score,
         label: pulse.label,
         generatedAt: new Date().toISOString(),
         source: 'gemini'
       };
-
-      cachedInsights = result;
-      lastInsightsTime = now;
-      return result;
     } catch {
       return buildFallbackInsights(pulse, zones, vendors);
     }
-  } catch (error) {
-    console.error('Insights generation error:', error);
-    return buildFallbackInsights(
-      { score: 50, label: 'Unknown', breakdown: {}, stats: {} },
-      [],
-      []
-    );
+  } catch (globalError) {
+    console.error('Critical Insights Engine Failure:', globalError);
+    return buildFallbackInsights({ score: 50, label: 'Stable' }, [], []);
   }
 };
 
@@ -113,49 +122,32 @@ REQUIRED JSON FORMAT (Strictly no markdown):
  * @returns {Object} Fallback insights object
  */
 const buildFallbackInsights = (pulse, zones, vendors) => {
-  const criticalZones = zones.filter(z => z.congestionLevel >= 70);
-  const avgWait = vendors.length
-    ? Math.round(vendors.reduce((s, v) => s + v.estimatedWaitMinutes, 0) / vendors.length)
-    : 0;
+  const critical = zones.filter(z => z.congestionLevel >= 70);
+  const avgWait = vendors.length ? Math.round(vendors.reduce((s, v) => s + v.estimatedWaitMinutes, 0) / vendors.length) : 0;
 
-  const summaryMap = {
-    'Smooth': 'Stadium is running smoothly with minimal congestion across all zones.',
-    'Good': 'Overall conditions are good with some areas seeing moderate activity.',
-    'Moderate': 'Stadium is experiencing moderate crowds — plan your moves wisely.',
-    'Stressed': 'Multiple zones are under pressure. Consider timing your visits carefully.',
-    'Critical': 'Stadium is at high capacity. Emergency routes are being prioritized.'
-  };
-
-  const highlights = [];
-  if (criticalZones.length > 0) {
-    highlights.push(`${criticalZones.length} zone${criticalZones.length > 1 ? 's' : ''} above 70% capacity`);
-  }
-  highlights.push(`Average vendor wait time is ${avgWait} minutes`);
-  highlights.push(`${vendors.length} vendors currently serving`);
-  if (pulse.breakdown?.mood !== undefined) {
-    highlights.push(`Crowd mood score: ${pulse.breakdown.mood}/100`);
-  }
-
-  const recommendations = [];
-  if (criticalZones.length > 0) {
-    recommendations.push(`Avoid ${criticalZones[0].name} — try a less busy area`);
-  }
-  if (avgWait > 10) {
-    recommendations.push('Food queues are long — order from less popular stalls for faster service');
-  }
-  recommendations.push('Use Journey Mode for AI-optimized route planning');
+  // Intelligence Decision Map
+  let strategy = '';
+  if (pulse.score > 80) strategy = 'Stadium infrastructure is operating at peak efficiency. Crowd distribution is balanced across all monitored sectors.';
+  else if (pulse.score > 60) strategy = 'Operational health is stable, though transit corridors are showing initial congestion signals.';
+  else if (pulse.score > 40) strategy = 'Substantial capacity load detected. Intelligence recommends proactive distribution to secondary vendors.';
+  else strategy = 'Critical load detected. High-density signals suggest immediate fan-flow management is required.';
 
   return {
-    summary: summaryMap[pulse.label] || 'Stadium data is being analyzed.',
-    highlights,
-    recommendations,
-    crowdPrediction: pulse.score >= 70
-      ? 'Crowds expected to remain manageable for the next 30 minutes.'
-      : 'Congestion may increase as the match progresses — plan breaks early.',
+    summary: `${strategy} Global pulse score currently stands at ${pulse.score}%.`,
+    highlights: [
+      `Infrastructure Load: ${critical.length} high-density sectors identified.`,
+      `Service Velocity: Average turnover time is ${avgWait} minutes.`,
+      `Connectivity: ${pulse.stats?.recentReports || 0} real-time sentiment signals processed.`
+    ],
+    recommendations: [
+      critical.length > 0 ? `Avoid ${critical[0].name} to minimize transit delay.` : 'Corridors are clear — optimal time for movement.',
+      'Tactical Advice: Monitor "Journey Mode" for real-time lane optimizations.'
+    ],
+    crowdPrediction: pulse.score < 50 ? 'Dynamic capacity surge expected in the next window.' : 'System expectations suggest stable flow patterns.',
     score: pulse.score,
     label: pulse.label,
     generatedAt: new Date().toISOString(),
-    source: 'fallback'
+    source: 'kyzen-local-iq'
   };
 };
 

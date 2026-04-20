@@ -1,14 +1,20 @@
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 let ai = null;
 
+/**
+ * @module geminiConfig
+ * @description Standardized Google AI Studio (Gemini) configuration.
+ * Uses the stable @google/generative-ai SDK.
+ */
 const getGemini = () => {
   if (!ai) {
     if (!process.env.GEMINI_API_KEY) {
-      console.warn('⚠️  GEMINI_API_KEY not set — Journey Mode AI will be unavailable');
+      console.warn('⚠️  GEMINI_API_KEY not set — Gemini features will be unavailable');
       return null;
     }
-    ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    // Initialize with the official stable SDK
+    ai = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
   }
   return ai;
 };
