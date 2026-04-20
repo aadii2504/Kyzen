@@ -25,6 +25,9 @@ const crowdReportSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
+// Compound index for efficient zone + time range queries
+crowdReportSchema.index({ zoneId: 1, createdAt: -1 });
+
 // TTL index — auto-delete expired reports
 crowdReportSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 

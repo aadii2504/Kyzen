@@ -45,4 +45,7 @@ zoneSchema.pre('save', function () {
   else this.status = 'normal';
 });
 
+// Index for filtered queries by type and status (used by journey planner)
+zoneSchema.index({ type: 1, status: 1 });
+
 module.exports = mongoose.model('Zone', zoneSchema);

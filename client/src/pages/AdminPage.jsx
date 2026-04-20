@@ -1,18 +1,18 @@
 import { useState, useEffect } from 'react';
-import { adminLogin, fetchAnalytics, toggleEmergency, sendAnnouncement, fetchVendors, fetchVendorQR } from '../services/api';
+import { adminLogin, fetchAnalytics, toggleEmergency, sendAnnouncement, stopAnnouncement, fetchVendors, fetchVendorQR } from '../services/api';
 import { useSocketContext } from '../contexts/SocketContext';
 import { getPulseColor, getStatusColor, getStatusLabel, getZoneIcon } from '../utils/helpers';
 import { ShieldAlert, Lock, BarChart3, AlertTriangle, Megaphone, Store, Users, Activity, Zap, QrCode } from 'lucide-react';
 import './AdminPage.css';
 
 export default function AdminPage() {
-  const { emergency } = useSocketContext();
+  const { emergency, announcement } = useSocketContext();
   const [password, setPassword] = useState('');
   const [authenticated, setAuthenticated] = useState(false);
   const [analytics, setAnalytics] = useState(null);
   const [vendors, setVendors] = useState([]);
   const [tab, setTab] = useState('overview');
-  const [announcement, setAnnouncement] = useState('');
+  const [announcementText, setAnnouncementText] = useState('');
   const [annType, setAnnType] = useState('info');
   const [emergencyMsg, setEmergencyMsg] = useState('Emergency evacuation in progress');
   const [qrModal, setQrModal] = useState(null);
@@ -29,7 +29,7 @@ export default function AdminPage() {
 
   const loadData = async () => {
     try {
-      const [a, v] = await Promise.all([fetchAnalytics(), fetchVendors()]);
+      const [a, v] = await Promise.all([fetchAnalytics(password), fetchVendors()]);
       setAnalytics(a);
       setVendors(v);
     } catch (err) { console.error(err); }
@@ -38,17 +38,41 @@ export default function AdminPage() {
   useEffect(() => { if (authenticated) { const iv = setInterval(loadData, 15000); return () => clearInterval(iv); } }, [authenticated]);
 
   const handleEmergencyToggle = async (activate) => {
+    const isConfirmed = window.confirm(
+      activate 
+        ? "🚨 Are you sure you want to ACTIVATE emergency mode? This will alert all users in the stadium."
+        : "✅ Are you sure you want to DEACTIVATE the active emergency?"
+    );
+    if (!isConfirmed) return;
+    
     try {
       await toggleEmergency(activate, emergencyMsg, password);
-    } catch (err) { setError(err.message); }
+    } catch (err) { 
+      setError(err.message); 
+      alert("Error toggling emergency: " + err.message);
+    }
   };
 
   const handleAnnounce = async () => {
-    if (!announcement.trim()) return;
+    if (!announcementText.trim()) return;
     try {
-      await sendAnnouncement(announcement, annType, password);
-      setAnnouncement('');
-    } catch (err) { setError(err.message); }
+      await sendAnnouncement(announcementText, annType, password);
+      setAnnouncementText('');
+    } catch (err) { 
+      setError(err.message); 
+      alert("Error sending announcement: " + err.message);
+    }
+  };
+
+  const handleStopAnnouncement = async () => {
+    const isConfirmed = window.confirm("⏹️ Are you sure you want to stop the active announcement?");
+    if (!isConfirmed) return;
+    try {
+      await stopAnnouncement(password);
+    } catch (err) { 
+      setError(err.message); 
+      alert("Error stopping announcement: " + err.message);
+    }
   };
 
   const showQR = async (vendorId) => {
@@ -93,6 +117,7 @@ export default function AdminPage() {
 
       <div className="admin-header animate-in">
         <h1><ShieldAlert size={28} /> Admin Dashboard</h1>
+        {error && <div className="form-error" style={{marginBottom: '1rem'}}>{error}</div>}
         <div className={`emergency-toggle ${emergency ? 'emergency-active' : ''}`}>
           {emergency ? (
             <button className="emg-btn emg-deactivate" onClick={() => handleEmergencyToggle(false)}>
@@ -197,9 +222,26 @@ export default function AdminPage() {
       {/* Announce Tab */}
       {tab === 'announce' && (
         <div className="admin-content animate-in">
+          {announcement && (
+            <div className={`active-announcement aa-type-${announcement.type || 'info'} glass-card-static`}>
+              <div className="aa-header">
+                <h3>
+                  <span className="aa-icon">📢</span> 
+                  Active Broadcast
+                  <span className="aa-badge">{announcement.type}</span>
+                </h3>
+                <button className="aa-stop-btn" onClick={handleStopAnnouncement}>
+                  <span>✕</span> Stop Announcement
+                </button>
+              </div>
+              <div className="aa-body">
+                <p>{announcement.message}</p>
+              </div>
+            </div>
+          )}
           <div className="announce-form glass-card-static">
             <h3><Megaphone size={20} /> Broadcast Announcement</h3>
-            <textarea value={announcement} onChange={e => setAnnouncement(e.target.value)} placeholder="Type your announcement..." rows={3} />
+            <textarea value={announcementText} onChange={e => setAnnouncementText(e.target.value)} placeholder="Type your announcement..." rows={3} />
             <div className="ann-controls">
               <select value={annType} onChange={e => setAnnType(e.target.value)}>
                 <option value="info">ℹ️ Info</option>

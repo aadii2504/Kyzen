@@ -2,12 +2,13 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
 const request = async (endpoint, options = {}) => {
   const url = `${API_URL}${endpoint}`;
+  const { headers, ...restOptions } = options;
   const config = {
-    headers: { 'Content-Type': 'application/json', ...options.headers },
-    ...options,
+    ...restOptions,
+    headers: { 'Content-Type': 'application/json', ...headers },
   };
-  if (options.body && typeof options.body === 'object') {
-    config.body = JSON.stringify(options.body);
+  if (config.body && typeof config.body === 'object') {
+    config.body = JSON.stringify(config.body);
   }
   const res = await fetch(url, config);
   const data = await res.json();
@@ -37,6 +38,7 @@ export const fetchCrowdHistory = (zoneId) => request(`/api/crowd/history/${zoneI
 // Pulse API
 export const fetchPulse = () => request('/api/pulse');
 export const fetchPulseHistory = () => request('/api/pulse/history');
+export const fetchPulseInsights = () => request('/api/insights/pulse');
 
 // Journey API
 export const planJourney = (body) => request('/api/journey/plan', { method: 'POST', body });
@@ -45,9 +47,10 @@ export const updateJourneyStatus = (id, status) => request(`/api/journey/${id}/s
 
 // Admin API
 export const adminLogin = (password) => request('/api/admin/login', { method: 'POST', body: { password } });
-export const fetchAnalytics = () => request('/api/admin/analytics');
+export const fetchAnalytics = (password) => request('/api/admin/analytics', { headers: { 'x-admin-password': password } });
 export const toggleEmergency = (activate, message, password) => request('/api/admin/emergency', { method: 'POST', body: { activate, message, password }, headers: { 'x-admin-password': password } });
 export const sendAnnouncement = (message, type, password) => request('/api/admin/announce', { method: 'POST', body: { message, type, password }, headers: { 'x-admin-password': password } });
+export const stopAnnouncement = (password) => request('/api/admin/announce/stop', { method: 'POST', headers: { 'x-admin-password': password } });
 
 // Event API
 export const fetchCurrentEvent = () => request('/api/events/current');

@@ -1,5 +1,5 @@
 const adminAuth = (req, res, next) => {
-  const { password } = req.body;
+  const password = req.body?.password;
   const adminHeader = req.headers['x-admin-password'];
   const pwd = password || adminHeader;
 

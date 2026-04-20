@@ -1,31 +1,89 @@
 /**
- * Dijkstra's Algorithm for finding shortest path between zones
- * Edge weights are adjusted by congestion: weight = walkTime * (1 + congestion/100)
- * This makes the router automatically avoid congested areas.
+ * @module dijkstra
+ * @description Dijkstra's Algorithm for finding shortest path between stadium zones.
+ * Uses a binary min-heap priority queue for O(log n) insert/dequeue operations.
+ * Edge weights are adjusted by congestion: weight = walkTime × (1 + congestion/100)
+ * This makes the router automatically prefer less congested areas.
  */
 
 const Zone = require('../models/Zone');
 
+/**
+ * Binary min-heap priority queue for efficient Dijkstra traversal.
+ * Provides O(log n) enqueue and dequeue instead of O(n log n) with array sort.
+ */
 class PriorityQueue {
   constructor() {
-    this.items = [];
+    /** @type {Array<{element: string, priority: number}>} */
+    this.heap = [];
   }
+
+  /** @returns {number} */
+  size() { return this.heap.length; }
+
+  /** @returns {boolean} */
+  isEmpty() { return this.heap.length === 0; }
+
+  /**
+   * Insert element with given priority. O(log n)
+   * @param {string} element - Node identifier
+   * @param {number} priority - Weight/distance value
+   */
   enqueue(element, priority) {
-    this.items.push({ element, priority });
-    this.items.sort((a, b) => a.priority - b.priority);
+    this.heap.push({ element, priority });
+    this._bubbleUp(this.heap.length - 1);
   }
+
+  /**
+   * Remove and return the element with smallest priority. O(log n)
+   * @returns {{element: string, priority: number}}
+   */
   dequeue() {
-    return this.items.shift();
+    if (this.heap.length === 0) return null;
+    const min = this.heap[0];
+    const last = this.heap.pop();
+    if (this.heap.length > 0) {
+      this.heap[0] = last;
+      this._sinkDown(0);
+    }
+    return min;
   }
-  isEmpty() {
-    return this.items.length === 0;
+
+  /** @private */
+  _bubbleUp(idx) {
+    while (idx > 0) {
+      const parentIdx = Math.floor((idx - 1) / 2);
+      if (this.heap[parentIdx].priority <= this.heap[idx].priority) break;
+      [this.heap[parentIdx], this.heap[idx]] = [this.heap[idx], this.heap[parentIdx]];
+      idx = parentIdx;
+    }
+  }
+
+  /** @private */
+  _sinkDown(idx) {
+    const length = this.heap.length;
+    while (true) {
+      let smallest = idx;
+      const left = 2 * idx + 1;
+      const right = 2 * idx + 2;
+
+      if (left < length && this.heap[left].priority < this.heap[smallest].priority) {
+        smallest = left;
+      }
+      if (right < length && this.heap[right].priority < this.heap[smallest].priority) {
+        smallest = right;
+      }
+      if (smallest === idx) break;
+      [this.heap[smallest], this.heap[idx]] = [this.heap[idx], this.heap[smallest]];
+      idx = smallest;
+    }
   }
 }
 
 /**
- * Build a weighted graph from zone data
+ * Build a weighted graph from zone data.
  * @param {Array} zones - Array of zone documents
- * @returns {Object} adjacency list with weights
+ * @returns {{graph: Object, zoneMap: Object}} adjacency list with weights and zone lookup map
  */
 const buildGraph = (zones) => {
   const graph = {};
@@ -57,11 +115,11 @@ const buildGraph = (zones) => {
 };
 
 /**
- * Find shortest path between two zones using Dijkstra
+ * Find shortest path between two zones using Dijkstra with binary heap.
  * @param {string} startId - Starting zone ID
  * @param {string} endId - Destination zone ID
- * @param {Array} zones - Array of zone documents (optional, will fetch if not provided)
- * @returns {Object} { path: [zoneIds], totalSeconds, totalCongestionAdjusted, segments }
+ * @param {Array|null} zones - Array of zone documents (optional, will fetch if not provided)
+ * @returns {Promise<Object>} { path: [zoneIds], totalSeconds, totalCongestionAdjusted, segments }
  */
 const findShortestPath = async (startId, endId, zones = null) => {
   if (!zones) {
@@ -78,7 +136,7 @@ const findShortestPath = async (startId, endId, zones = null) => {
   const previous = {};
   const pq = new PriorityQueue();
 
-  // Initialize
+  // Initialize all distances to Infinity
   Object.keys(graph).forEach(node => {
     distances[node] = Infinity;
     previous[node] = null;
@@ -89,8 +147,10 @@ const findShortestPath = async (startId, endId, zones = null) => {
   while (!pq.isEmpty()) {
     const { element: current } = pq.dequeue();
 
+    // Early termination when destination reached
     if (current === endId) break;
 
+    // Skip already-processed nodes with stale priorities
     if (distances[current] === Infinity) continue;
 
     graph[current].forEach(neighbor => {
@@ -142,11 +202,11 @@ const findShortestPath = async (startId, endId, zones = null) => {
 };
 
 /**
- * Find optimal multi-stop route (greedy nearest neighbor)
+ * Find optimal multi-stop route using greedy nearest neighbor heuristic.
  * @param {string} startId - Starting zone
- * @param {Array} stopIds - Array of zone IDs to visit
- * @param {Array} zones - Zone documents
- * @returns {Object} ordered stops with path details
+ * @param {Array<string>} stopIds - Array of zone IDs to visit
+ * @param {Array|null} zones - Zone documents (optional)
+ * @returns {Promise<Array>} ordered stops with path details
  */
 const findMultiStopRoute = async (startId, stopIds, zones = null) => {
   if (!zones) {
@@ -178,4 +238,4 @@ const findMultiStopRoute = async (startId, stopIds, zones = null) => {
   return ordered;
 };
 
-module.exports = { findShortestPath, findMultiStopRoute, buildGraph };
+module.exports = { findShortestPath, findMultiStopRoute, buildGraph, PriorityQueue };

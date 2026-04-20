@@ -30,7 +30,9 @@ export const SocketProvider = ({ children }) => {
     socket.on('emergency:deactivate', () => setEmergency(null));
     socket.on('announcement', (data) => {
       setAnnouncement(data);
-      setTimeout(() => setAnnouncement(null), 8000);
+    });
+    socket.on('announcement:clear', () => {
+      setAnnouncement(null);
     });
 
     return () => {
@@ -44,7 +46,8 @@ export const SocketProvider = ({ children }) => {
       isConnected,
       emergency,
       announcement,
-      setEmergency
+      setEmergency,
+      setAnnouncement
     }}>
       {children}
     </SocketContext.Provider>

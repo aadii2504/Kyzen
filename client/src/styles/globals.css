@@ -82,6 +82,44 @@ input:focus, textarea:focus, select:focus {
   color: white;
 }
 
+/* Accessibility: Focus visible outline */
+:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+}
+
+/* Accessibility: Screen reader only class */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+.focus-visible-skip:focus {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: auto;
+  height: auto;
+  padding: 10px 16px;
+  background: var(--bg-secondary);
+  color: var(--accent-primary);
+  z-index: 9999;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--accent-primary);
+  margin: 0;
+  clip: auto;
+  white-space: normal;
+  font-weight: 600;
+  text-decoration: none;
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -133,6 +171,21 @@ input:focus, textarea:focus, select:focus {
 
 .animate-in {
   animation: fadeSlideUp 0.5s var(--ease-out-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-in {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+  
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 .skeleton {

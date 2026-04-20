@@ -17,8 +17,19 @@ const setupSocketHandlers = (io) => {
       try {
         const pulse = await calculatePulseScore();
         const heatmap = await getHeatmapData();
+        const Event = require('../models/Event');
+        const event = await Event.findOne({ status: 'live' });
+        
         socket.emit('pulse:update', { ...pulse, history: pulseHistory.slice(-20) });
         socket.emit('heatmap:refresh', { points: heatmap });
+        
+        if (event && event.emergencyMode) {
+          socket.emit('emergency:activate', {
+            active: true,
+            message: event.emergencyMessage,
+            timestamp: new Date().toISOString()
+          });
+        }
       } catch (err) {
         console.error('Initial data error:', err);
       }

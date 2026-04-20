@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { fetchZones, fetchVendors, planJourney } from '../services/api';
 import { getZoneIcon, getStatusColor, formatTimeShort } from '../utils/helpers';
 import { Compass, Clock, MapPin, Sparkles, ArrowRight, RotateCcw, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
+import { MapContainer, TileLayer, Polyline, Marker, Popup, CircleMarker } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
 import './JourneyPage.css';
 
 const GOAL_OPTIONS = [
@@ -86,6 +88,26 @@ export default function JourneyPage() {
   // Result State
   if (step === 'result' && journey) {
     const steps = journey.steps || [];
+    const routeCoords = [];
+    
+    // Build path coordinates from steps if available
+    steps.forEach(step => {
+      if (step.zoneId) {
+        const zone = zones.find(z => z.zoneId === step.zoneId);
+        if (zone && zone.coordinates) {
+          routeCoords.push([zone.coordinates.lat, zone.coordinates.lng]);
+        }
+      }
+    });
+
+    // Add current zone as start if route is calculated
+    const startZone = zones.find(z => z.zoneId === currentZone);
+    if (startZone && startZone.coordinates && routeCoords.length > 0) {
+      if (routeCoords[0][0] !== startZone.coordinates.lat || routeCoords[0][1] !== startZone.coordinates.lng) {
+        routeCoords.unshift([startZone.coordinates.lat, startZone.coordinates.lng]);
+      }
+    }
+
     return (
       <div className="journey-page">
         <div className="journey-result animate-in">
@@ -95,6 +117,33 @@ export default function JourneyPage() {
               <h1>Your Journey</h1>
               <p>{steps.length} stops · ~{journey.totalTimeMinutes} min total</p>
             </div>
+          </div>
+
+          <div className="journey-map-container glass-card-static">
+            <MapContainer center={[18.9388, 72.8258]} zoom={17} style={{ height: '300px', width: '100%', borderRadius: '12px' }}>
+              <TileLayer
+                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                attribution='&copy; <a href="https://carto.com/">CARTO</a>'
+              />
+              {routeCoords.length > 1 && (
+                <Polyline 
+                  positions={routeCoords} 
+                  color="var(--accent-primary)" 
+                  weight={4} 
+                  dashArray="10, 10" 
+                  className="animated-route"
+                />
+              )}
+              {routeCoords.map((coord, i) => (
+                <CircleMarker 
+                  key={i} 
+                  center={coord} 
+                  radius={i === 0 ? 8 : (i === routeCoords.length - 1 ? 10 : 6)}
+                  color={i === 0 ? 'var(--accent-emerald)' : (i === routeCoords.length - 1 ? 'var(--accent-primary)' : 'var(--accent-cyan)')}
+                  fillOpacity={1}
+                />
+              ))}
+            </MapContainer>
           </div>
 
           {journey.confidenceNote && (

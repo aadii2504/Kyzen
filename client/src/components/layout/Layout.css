@@ -4,23 +4,60 @@
   flex-direction: column;
 }
 
-/* Emergency Banner */
-.emergency-banner {
-  position: fixed;
-  top: 0; left: 0; right: 0;
+.sticky-header {
+  position: sticky;
+  top: 0;
   z-index: 1000;
-  background: linear-gradient(90deg, #991b1b, #dc2626, #991b1b);
-  background-size: 200% 100%;
-  animation: gradientShift 2s ease infinite, alertFlash 1s ease infinite;
-  color: #fff;
-  padding: 10px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Emergency Banner - Cyberpunk / Sleek Red */
+.emergency-banner {
+  position: relative;
+  background: rgba(185, 28, 28, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(248, 113, 113, 0.4);
+  color: #fef2f2;
+  padding: 12px 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  font-weight: 600;
-  font-size: 14px;
-  letter-spacing: 0.5px;
+  gap: 12px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  z-index: 1001;
+  box-shadow: 0 4px 30px rgba(220, 38, 38, 0.3);
+  overflow: hidden;
+}
+
+.emergency-banner::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, rgba(254, 226, 226, 0.3), transparent);
+  animation: warningSweep 3s infinite linear;
+  pointer-events: none;
+}
+
+@keyframes warningSweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.emergency-banner svg {
+  color: #fca5a5;
+  animation: pulse-icon 1.5s infinite;
+}
+
+@keyframes pulse-icon {
+  0%, 100% { transform: scale(1); opacity: 1; filter: drop-shadow(0 0 8px rgba(254,226,226,0.6)); }
+  50% { transform: scale(1.15); opacity: 0.8; filter: drop-shadow(0 0 15px rgba(254,226,226,0.9)); }
 }
 
 /* Announcement Toast */
@@ -54,8 +91,7 @@
 
 /* Navbar */
 .navbar {
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 100;
   display: flex;
   align-items: center;
@@ -169,8 +205,8 @@
 @media (max-width: 768px) {
   .nav-links {
     display: none;
-    position: fixed;
-    top: 64px; left: 0; right: 0;
+    position: absolute;
+    top: 100%; left: 0; right: 0;
     background: var(--bg-secondary);
     border-bottom: 1px solid var(--bg-glass-border);
     flex-direction: column;

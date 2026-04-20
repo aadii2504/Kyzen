@@ -20,14 +20,6 @@ export default function Layout({ children }) {
 
   return (
     <div className="layout">
-      {/* Emergency Banner */}
-      {emergency && (
-        <div className="emergency-banner">
-          <ShieldAlert size={20} />
-          <span>{emergency.message || 'Emergency evacuation in progress'}</span>
-        </div>
-      )}
-
       {/* Announcement Toast */}
       {announcement && (
         <div className={`announcement-toast announcement-${announcement.type || 'info'}`}>
@@ -35,37 +27,68 @@ export default function Layout({ children }) {
         </div>
       )}
 
-      {/* Top Navbar */}
-      <nav className="navbar glass-card-static">
-        <Link to="/" className="nav-brand">
-          <div className="brand-icon">K</div>
-          <span className="brand-text">KYZEN</span>
-        </Link>
+      {/* Accessibility: Skip to main content */}
+      <a href="#main-content" className="sr-only focus-visible-skip">
+        Skip to main content
+      </a>
 
-        <div className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}>
-          {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
-            <Link
-              key={path}
-              to={path}
-              className={`nav-link ${location.pathname === path ? 'nav-link-active' : ''}`}
-              onClick={() => setMobileMenuOpen(false)}
+      {/* Sticky Header Group */}
+      <header className="sticky-header">
+        {/* Emergency Banner */}
+        {emergency && (
+          <div className="emergency-banner">
+            <ShieldAlert size={20} />
+            <span>{emergency.message || 'Emergency evacuation in progress'}</span>
+          </div>
+        )}
+
+        {/* Top Navbar */}
+        <nav className="navbar glass-card-static" aria-label="Main Navigation">
+          <Link to="/" className="nav-brand" aria-label="Kyzen Home">
+            <div className="brand-icon" aria-hidden="true">K</div>
+            <span className="brand-text">KYZEN</span>
+          </Link>
+
+          <div 
+            className={`nav-links ${mobileMenuOpen ? 'nav-links-open' : ''}`}
+            role="menu"
+          >
+            {NAV_ITEMS.map(({ path, label, icon: Icon }) => (
+              <Link
+                key={path}
+                to={path}
+                className={`nav-link ${location.pathname === path ? 'nav-link-active' : ''}`}
+                onClick={() => setMobileMenuOpen(false)}
+                role="menuitem"
+                aria-current={location.pathname === path ? 'page' : undefined}
+              >
+                <Icon size={18} />
+                <span>{label}</span>
+              </Link>
+            ))}
+          </div>
+
+          <div className="nav-right">
+            <div 
+              className={`connection-dot ${isConnected ? 'connected' : 'disconnected'}`} 
+              title={isConnected ? 'Live connected' : 'Disconnected'} 
+              aria-label={isConnected ? 'System online' : 'System offline'}
+              role="status"
+            />
+            <button 
+              className="mobile-menu-btn" 
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
+              aria-expanded={mobileMenuOpen}
             >
-              <Icon size={18} />
-              <span>{label}</span>
-            </Link>
-          ))}
-        </div>
-
-        <div className="nav-right">
-          <div className={`connection-dot ${isConnected ? 'connected' : 'disconnected'}`} title={isConnected ? 'Live connected' : 'Disconnected'} />
-          <button className="mobile-menu-btn" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
-      </nav>
+              {mobileMenuOpen ? <X size={24} aria-hidden="true" /> : <Menu size={24} aria-hidden="true" />}
+            </button>
+          </div>
+        </nav>
+      </header>
 
       {/* Main Content */}
-      <main className="main-content">
+      <main id="main-content" className="main-content" tabIndex="-1">
         {children}
       </main>
     </div>
