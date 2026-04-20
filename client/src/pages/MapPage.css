@@ -13,15 +13,128 @@
 .toggle-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
 .toggle-active { background: rgba(99,102,241,0.15); color: var(--accent-primary); border-color: var(--accent-primary); }
 
-.map-container { height: 500px; overflow: hidden; margin-bottom: var(--space-md); padding: 0; }
+.map-container {
+  flex: 1;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  position: relative;
+}
+
+/* Custom Google Maps Marker */
+.custom-marker {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: var(--marker-color);
+  border: 3px solid var(--marker-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  transition: transform var(--duration-fast);
+  cursor: pointer;
+}
+
+.custom-marker:hover {
+  transform: scale(1.1);
+}
+
+.marker-icon {
+  font-size: 20px;
+}
+
+.marker-ping {
+  position: absolute;
+  top: -5px; left: -5px; right: -5px; bottom: -5px;
+  border: 2px solid var(--marker-color);
+  border-radius: 50%;
+  opacity: 0;
+  animation: marker-ping 2s infinite;
+}
+
+@keyframes marker-ping {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(1.4); opacity: 0; }
+}
+
+/* Info Window Styling */
+.map-info-window {
+  padding: var(--space-sm);
+  color: #0a0e1a; /* Google InfoWindow uses white bg by default unless styled deeper */
+  min-width: 180px;
+}
+
+.info-title {
+  margin: 0 0 8px 0;
+  font-family: var(--font-display);
+  font-size: 16px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 4px;
+}
+
+.info-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.info-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+}
+
+.stat-label { color: #666; }
+.stat-val { font-weight: 700; }
+
+.info-badge {
+  text-align: center;
+  padding: 4px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  color: white;
+  text-transform: uppercase;
+}
 
 /* Legend */
 .map-legend {
-  display: flex; gap: var(--space-lg); padding: var(--space-md) var(--space-lg);
-  justify-content: center; flex-wrap: wrap; margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: var(--space-xl);
+  padding: var(--space-md) var(--space-lg);
+  font-size: 13px;
 }
-.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); font-weight: 500; }
-.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+.legend-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-right: 1px solid var(--bg-glass-border);
+  padding-right: var(--space-lg);
+}
+
+.legend-items {
+  display: flex;
+  gap: var(--space-lg);
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-tertiary);
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
 
 /* Zone Tooltip */
 .zone-tooltip .tooltip-content { font-size: 13px; line-height: 1.5; }
@@ -46,6 +159,12 @@
   display: inline-block; padding: 4px 16px;
   border-radius: var(--radius-full); font-size: 12px; font-weight: 600;
   border: 1px solid;
+}
+
+@media (max-width: 768px) {
+  .map-legend { flex-direction: column; align-items: flex-start; gap: var(--space-sm); }
+  .legend-header { border-right: none; padding: 0; }
+  .legend-items { flex-wrap: wrap; gap: var(--space-md); }
 }
 
 @media (max-width: 768px) {

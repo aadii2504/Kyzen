@@ -18,6 +18,8 @@ const journeyRoutes = require('./routes/journey');
 const adminRoutes = require('./routes/admin');
 const eventRoutes = require('./routes/events');
 const insightsRoutes = require('./routes/insights');
+const globalErrorHandler = require('./middleware/errorController');
+const AppError = require('./utils/AppError');
 
 const app = express();
 const server = http.createServer(app);
@@ -79,6 +81,14 @@ app.use('/api/journey', journeyRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/insights', insightsRoutes);
+
+// Handle undefined routes
+app.all('*', (req, res, next) => {
+  next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404));
+});
+
+// Global Error Handling Middleware
+app.use(globalErrorHandler);
 
 // Health check
 app.get('/api/health', (req, res) => {

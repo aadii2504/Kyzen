@@ -46,30 +46,32 @@ const generatePulseInsights = async () => {
     const criticalZones = zones.filter(z => z.congestionLevel >= 70);
     const negReports = recentReports.filter(r => r.sentiment === 'negative');
 
-    const prompt = `You are Kyzen, a smart stadium AI assistant. Analyze the current stadium data and provide concise, actionable insights.
+    const prompt = `You are Kyzen, the elite Smart Stadium Intelligence AI. Your goal is to analyze stadium live data and provide high-impact, professional insights.
 
-LIVE DATA:
-- Pulse Score: ${pulse.score}/100 (${pulse.label})
-- Total Attendance: ${pulse.stats?.totalAttendance || 0} / ${pulse.stats?.totalCapacity || 0}
-- Active Zones: ${zones.length}
-- Critical Zones (>70% congestion): ${criticalZones.map(z => `${z.name}(${z.congestionLevel}%)`).join(', ') || 'None'}
-- Open Vendors: ${vendors.length}, Avg Wait: ${vendors.length ? Math.round(vendors.reduce((s, v) => s + v.estimatedWaitMinutes, 0) / vendors.length) : 0} min
-- Recent Negative Reports: ${negReports.length} in last 15 min
-- Breakdown: CrowdFlow=${pulse.breakdown?.crowdFlow || 0}, QueueSpeed=${pulse.breakdown?.queueEfficiency || 0}, Mood=${pulse.breakdown?.mood || 0}
+STADIUM DATA SNAPSHOT:
+- Pulse Score: ${pulse.score}/100 (Status: ${pulse.label})
+- Global Attendance: ${pulse.stats?.totalAttendance || 0} / ${pulse.stats?.totalCapacity || 0}
+- Critical Hot Zones: ${criticalZones.map(z => `${z.name} (${z.congestionLevel}%)`).join(', ') || 'None reported'}
+- Vendor Efficiency: ${vendors.length} open stalls, avg wait ${vendors.length ? Math.round(vendors.reduce((s, v) => s + v.estimatedWaitMinutes, 0) / vendors.length) : 0} min
+- Real-time Sentiment: ${negReports.length} negative signals detected in the last window.
+- Efficiency Metrics: Flow=${pulse.breakdown?.crowdFlow || 0}, Speed=${pulse.breakdown?.queueEfficiency || 0}, Atmosphere=${pulse.breakdown?.mood || 0}
 
-RESPOND WITH ONLY THIS JSON (no markdown, no code fences):
+TASK:
+Provide a strategic summary, key analytical highlights, and tactical recommendations for fans.
+
+REQUIRED JSON FORMAT (Strictly no markdown):
 {
-  "summary": "One sentence describing overall stadium health right now",
-  "highlights": ["3-4 key observations as short bullet points"],
-  "recommendations": ["2-3 actionable tips for stadium attendees"],
-  "crowdPrediction": "One sentence predicting crowd trend for next 30 minutes"
+  "summary": "Professional executive summary of stadium state",
+  "highlights": ["3 analytical observations"],
+  "recommendations": ["2 tactical tips for fans"],
+  "crowdPrediction": "Data-driven prediction for the next 30-60 minutes"
 }`;
 
     const response = await gemini.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-1.5-flash',
       contents: prompt,
       config: {
-        temperature: 0.4,
+        temperature: 0.2, // Lower temperature for more stable JSON
         maxOutputTokens: 512,
       }
     });

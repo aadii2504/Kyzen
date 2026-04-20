@@ -13,9 +13,16 @@ const RadialProgress = ({ value, label, color, icon: Icon }) => {
   const strokeDashoffset = circumference - (value / 100) * circumference;
 
   return (
-    <div className="radial-item">
+    <div 
+      className="radial-item" 
+      role="progressbar" 
+      aria-valuenow={value} 
+      aria-valuemin="0" 
+      aria-valuemax="100" 
+      aria-label={`${label} metric at ${value}%`}
+    >
       <div className="radial-svg-wrapper">
-        <svg width="80" height="80" viewBox="0 0 80 80">
+        <svg width="80" height="80" viewBox="0 0 80 80" aria-hidden="true">
           <circle cx="40" cy="40" r={radius} fill="none" stroke="var(--bg-tertiary)" strokeWidth="6" />
           <circle 
             cx="40" cy="40" r={radius} fill="none" 
@@ -116,7 +123,13 @@ export default function HomePage() {
       )}
 
       {/* Pulse Score Section */}
-      <div className="pulse-section animate-in" style={{ animationDelay: '100ms' }}>
+      <div 
+        className="pulse-section animate-in" 
+        style={{ animationDelay: '100ms' }}
+        role="status"
+        aria-live="polite"
+        aria-label={`Current stadium pulse score is ${pulse?.score || 'unknown'}`}
+      >
         <div
           className="pulse-orb"
           style={{
@@ -124,8 +137,8 @@ export default function HomePage() {
             '--pulse-color': pulse ? getPulseColor(pulse.score) : 'var(--accent-primary)'
           }}
         >
-          <div className="pulse-ring" />
-          <div className="pulse-ring pulse-ring-2" />
+          <div className="pulse-ring" aria-hidden="true" />
+          <div className="pulse-ring pulse-ring-2" aria-hidden="true" />
           <div className="pulse-number">{pulse?.score ?? '--'}</div>
           <div className="pulse-label">PULSE</div>
         </div>
@@ -135,8 +148,8 @@ export default function HomePage() {
 
         {/* Sparkline */}
         {pulse?.history && pulse.history.length > 1 && (
-          <div className="sparkline-container">
-            <svg viewBox={`0 0 ${pulse.history.length * 12} 40`} className="sparkline-svg">
+          <div className="sparkline-container" aria-label="Pulse score history graph" role="img">
+            <svg viewBox={`0 0 ${pulse.history.length * 12} 40`} className="sparkline-svg" aria-hidden="true">
               <polyline
                 fill="none"
                 stroke={getPulseColor(pulse.score)}

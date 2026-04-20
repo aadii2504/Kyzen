@@ -67,7 +67,13 @@ export default function ZonesPage() {
                 <span className="zc-label">/ {zone.capacity}</span>
               </div>
             </div>
-            <div className="zone-progress-bar">
+            <div 
+              className="zone-progress-bar" 
+              role="progressbar" 
+              aria-valuenow={zone.congestionLevel} 
+              aria-valuemin="0" 
+              aria-valuemax="100"
+            >
               <div className="zone-progress-fill" style={{ width: `${zone.congestionLevel}%`, background: getStatusColor(zone.congestionLevel) }} />
             </div>
           </div>
