@@ -9,7 +9,6 @@ import ZonesPage from './pages/ZonesPage';
 import ReportPage from './pages/ReportPage';
 import VendorPage from './pages/VendorPage';
 import AdminPage from './pages/AdminPage';
-import './styles/globals.css';
 
 /**
  * Root application component.
